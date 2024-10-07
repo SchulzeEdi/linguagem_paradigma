@@ -22,11 +22,11 @@ io.on('connection', (socket) => {
   socket.emit('estadoInicial', dispositivos)
   socket.on('acenderLuz', () => {
     dispositivos.luzOn = true
-    io.emit('estadoAtual', dispositivos)
+    io.emit('estadoAltera', dispositivos)
   })
   socket.on('apagarLuz', () => {
     dispositivos.luzOn = false
-    io.emit('estadoAtual', dispositivos)
+    io.emit('estadoAltera', dispositivos)
   })
 })
 
