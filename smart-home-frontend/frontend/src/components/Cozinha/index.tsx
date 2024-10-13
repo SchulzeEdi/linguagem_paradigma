@@ -23,7 +23,7 @@ export default function Cozinha() {
 
     //conectar ao backend e receber o estado inicial
     useEffect(() => {
-        socket.on('estadoInicialSala', (estadoInicial: EstadoInicial) => {
+        socket.on('estadoInicialCozinha', (estadoInicial: EstadoInicial) => {
             setEstadoInicial(estadoInicial);
         });
         //atualiza estado quando houver mudança
@@ -46,7 +46,7 @@ export default function Cozinha() {
     return (
         <div className='cozinha'>
             <div className='luz'>
-                <p>Sala de Estar - Luz</p>
+                <p>Cozinha - Luz</p>
                 <button onClick={acenderLuz}>
                     {estadoLuz.luzOn ? 'Desligar Luz' : 'Ligar Luz'}
                 </button>
