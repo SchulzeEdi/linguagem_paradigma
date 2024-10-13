@@ -1,57 +1,68 @@
+// src/components/Cozinha.tsx
 import { useEffect, useState } from "react";
 import { io } from "socket.io-client";
 import './style.css';
+import Luz from './Luz';
 
 export default function Cozinha() {
     const socket = io('http://localhost:4000');
 
-    interface EstadoInicial {
-        luzOn: boolean,
-    }
-
-    interface EstadoLuz {
-        luzOn: boolean,
-    }
-
-    const [estadoInicial, setEstadoInicial] = useState<EstadoInicial>({
-        luzOn: false
+    const [estadoInicial, setEstadoInicial] = useState({
+        luzCozinha: false,
+        temperaturaGeladeira: 0,
+        alertaGeladeira: false,
+        fogaoOn: false,
+        potenciaFogao: 1,
     });
 
-    const [estadoLuz, setEstadoLuz] = useState<EstadoLuz>({
-        luzOn: false
-    });
-
-    //conectar ao backend e receber o estado inicial
     useEffect(() => {
-        socket.on('estadoInicialCozinha', (estadoInicial: EstadoInicial) => {
-            setEstadoInicial(estadoInicial);
+        socket.on('estadoInicial', (estado) => {
+            setEstadoInicial(estado);
         });
-        //atualiza estado quando houver mudança
-        socket.on('acenderLuzCozinha', (novoEstado: EstadoLuz) => {
-            setEstadoLuz(novoEstado);
+
+        socket.on('estadoAtual', (novoEstado) => {
+            setEstadoInicial(novoEstado);
         });
 
         return () => {
-            socket.off('estadoInicialCozinha');
-            socket.off('acenderLuzCozinha');
-        }
+            socket.off('estadoInicial');
+            socket.off('estadoAtual');
+        };
     }, []);
 
-    //funcao para alterar o estado dos dispositivo
-    const acenderLuz = () => {
-        socket.emit('acenderLuzCozinha');
-    }
+    const ligarLuzCozinha = () => {
+        estadoInicial.luzCozinha ? socket.emit('apagarLuzCozinha') : socket.emit('acenderLuzCozinha');
+    };
 
+    const ajustarPotenciaFogao = (novaPotencia: number) => {
+        socket.emit('ajustarPotenciaFogao', novaPotencia);
+    };
 
     return (
         <div className='cozinha'>
-            <div className='luz'>
-                <p>Cozinha - Luz</p>
-                <button onClick={acenderLuz}>
-                    {estadoLuz.luzOn ? 'Desligar Luz' : 'Ligar Luz'}
+            <Luz estado={estadoInicial.luzCozinha} onToggle={ligarLuzCozinha} /> {/* Componente Luz adicionado */}
+            <div className='geladeira'>
+                <p>Geladeira - Temperatura: {estadoInicial.temperaturaGeladeira}°C</p>
+                {estadoInicial.alertaGeladeira && <p style={{ color: 'red' }}>Alerta: Temperatura acima de 5°C!</p>}
+            </div>
+            <div className='fogao'>
+                <p>Fogão Elétrico</p>
+                <button onClick={() => ajustarPotenciaFogao(estadoInicial.fogaoOn ? 0 : 1)}>
+                    {estadoInicial.fogaoOn ? 'Desligar Fogão' : 'Ligar Fogão'}
                 </button>
-                <img src='luz.png' className={`status ${estadoLuz.luzOn ? 'on' : 'off'}`} />
+                {estadoInicial.fogaoOn && (
+                    <div>
+                        <label>Potência:</label>
+                        <input
+                            type="number"
+                            min="1"
+                            max="5"
+                            value={estadoInicial.potenciaFogao}
+                            onChange={(e) => ajustarPotenciaFogao(Number(e.target.value))}
+                        />
+                    </div>
+                )}
             </div>
         </div>
-    )
+    );
 }

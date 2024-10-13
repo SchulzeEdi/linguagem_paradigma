@@ -1,92 +1,78 @@
+// src/components/Sala/index.tsx
 import { useEffect, useState } from "react";
 import { io } from "socket.io-client";
 import './style.css';
 import Luz from "./Luz";
+import Tv from "./Tv";
 
 export default function Sala() {
-    const socket = io('http://localhost:4000');
+    const socket = io('http://localhost:4000'); // Conexão com o backend
 
-    interface EstadoInicial {
-        luzOn: boolean,
-        tvOn: boolean,
-        arTemp: number,
-        arOn: boolean
-    }
-
-    interface EstadoLuz {
-        luzOn: boolean,
-    }
-
-    interface EstadoTv {
-        tvOn: boolean
-    }
-
-    interface EstadoAr {
-        arOn: boolean
-    }
-
-    const [estadoInicial, setEstadoInicial] = useState<EstadoInicial>({
-        luzOn: false,
+    // Estado inicial dos dispositivos
+    const [estadoInicial, setEstadoInicial] = useState({
+        luzSala: false,
         tvOn: false,
-        arTemp: 0,
-        arOn: false
+        canalTv: 1,
+        arOn: false,
+        arTemp: 24,
     });
 
-    const [estadoTv, setEstadoTv] = useState<EstadoTv>({
-        tvOn: false
-    });
-
-    const [estadoAr, setEstadoAr] = useState<EstadoAr>({
-        arOn: false
-    });
-
-    //conectar ao backend e receber o estado inicial
     useEffect(() => {
-        socket.on('estadoInicialSala', (estadoInicial: EstadoInicial) => {
-            setEstadoInicial(estadoInicial);
+        socket.on('estadoInicial', (estado) => {
+            setEstadoInicial(estado);
         });
-        socket.on('ligarTvSala', (novoEstado: EstadoTv) => {
-            setEstadoTv(novoEstado);
-        });
-        socket.on('ligarArSala', (novoEstado: EstadoAr) => {
-            setEstadoAr(novoEstado);
+
+        socket.on('estadoAtual', (novoEstado) => {
+            setEstadoInicial(novoEstado);
         });
 
         return () => {
-            socket.off('estadoInicialSala');
-            socket.off('ligarTvSala');
-            socket.off('ligarArSala');
-        }
+            socket.off('estadoInicial');
+            socket.off('estadoAtual');
+        };
     }, []);
 
-    //funcao para alterar o estado dos dispositivo
+    const ligarLuzSala = () => {
+        estadoInicial.luzSala ? socket.emit('apagarLuzSala') : socket.emit('acenderLuzSala');
+    };
+
     const ligarTv = () => {
-        socket.emit('ligarTvSala');
-    }
+        estadoInicial.tvOn ? socket.emit('desligarTv') : socket.emit('ligarTv');
+    };
+
+    const mudarCanal = (canal: number) => {
+        socket.emit('mudarCanal', canal);
+    };
+
     const ligarAr = () => {
-        socket.emit('ligarArSala');
-    }
-   
+        estadoInicial.arOn ? socket.emit('desligarAr') : socket.emit('ligarAr');
+    };
 
     return (
         <div className='sala'>
-            <Luz/>
-            <div className='tv'>
-                <p>Sala de Estar - TV</p>
-                <button onClick={ligarTv}>
-                    {estadoTv.tvOn ? 'Desligar TV' : 'Ligar TV'}
-                </button>
-                <img src='tv.png' className={`status ${estadoTv.tvOn ? 'on' : 'off'}`} />
-            </div>
+            <Luz estado={estadoInicial.luzSala} onToggle={ligarLuzSala} />
+            <Tv
+                estadoTv={estadoInicial.tvOn}
+                canalTv={estadoInicial.canalTv}
+                onToggleTv={ligarTv}
+                onMudarCanal={mudarCanal}
+            />
             <div className='ar'>
                 <p>Sala de Estar - AR Condicionado</p>
                 <button onClick={ligarAr}>
-                    {estadoAr.arOn ? 'Desligar Ar' : 'Ligar Ar'}
+                    {estadoInicial.arOn ? 'Desligar Ar' : 'Ligar Ar'}
                 </button>
                 <label>Temperatura:</label>
-                <input type="number" disabled={!estadoAr.arOn} />
-                <img src='ar.png' className={`status ${estadoAr.arOn ? 'on' : 'off'}`} />
+                <input
+                    type="number"
+                    value={estadoInicial.arTemp}
+                    disabled={!estadoInicial.arOn}
+                    onChange={(e) => {
+                        const novaTemp = Number(e.target.value);
+                        socket.emit('ajustarTemperaturaAr', novaTemp);
+                    }}
+                />
             </div>
         </div>
-    )
+    );
 }
