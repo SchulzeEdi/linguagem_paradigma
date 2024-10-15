@@ -25,8 +25,11 @@ let dispositivos = {
     temperaturaGeladeira: 1,
     alertaGeladeira: false,
     potenciaFogao: 0,
-    fogaoOn: false
-
+    fogaoOn: false,
+    luzQuarto: false,
+    ventiladorOn: false,
+    velocidadeVentilador: 1,
+    cortinasAbertas: false
 };
 
 io.on('connection', (socket) => {
@@ -95,6 +98,41 @@ io.on('connection', (socket) => {
     socket.on('ajustarPotenciaFogao', (novaPotencia) => {
         dispositivos.potenciaFogao = novaPotencia;
         dispositivos.fogaoOn = novaPotencia > 0;
+        io.emit('estadoAtual', dispositivos);
+    });
+
+    socket.on('acenderLuzQuarto', () => {
+        dispositivos.luzQuarto = true;
+        io.emit('estadoAtual', dispositivos);
+    });
+
+    socket.on('apagarLuzQuarto', () => {
+        dispositivos.luzQuarto = false;
+        io.emit('estadoAtual', dispositivos);
+    });
+
+    socket.on('ligarVentilador', () => {
+        dispositivos.ventiladorOn = true;
+        io.emit('estadoAtual', dispositivos);
+    });
+
+    socket.on('desligarVentilador', () => {
+        dispositivos.ventiladorOn = false;
+        io.emit('estadoAtual', dispositivos);
+    });
+
+    socket.on('ajustarVelocidadeVentilador', (velocidade) => {
+        dispositivos.velocidadeVentilador = velocidade;
+        io.emit('estadoAtual', dispositivos);
+    });
+
+    socket.on('abrirCortinas', () => {
+        dispositivos.cortinasAbertas = true;
+        io.emit('estadoAtual', dispositivos);
+    });
+
+    socket.on('fecharCortinas', () => {
+        dispositivos.cortinasAbertas = false;
         io.emit('estadoAtual', dispositivos);
     });
 });

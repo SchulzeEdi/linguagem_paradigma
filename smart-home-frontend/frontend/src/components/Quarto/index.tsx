@@ -1,57 +1,80 @@
+// src/components/Quarto/index.tsx
 import { useEffect, useState } from "react";
 import { io } from "socket.io-client";
 import './style.css';
+import Luz from './Luz';
 
 export default function Quarto() {
     const socket = io('http://localhost:4000');
 
-    interface EstadoInicial {
-        luzOn: boolean,
-    }
-
-    interface EstadoLuz {
-        luzOn: boolean,
-    }
-
-    const [estadoInicial, setEstadoInicial] = useState<EstadoInicial>({
-        luzOn: false
+    const [estadoInicial, setEstadoInicial] = useState({
+        luzQuarto: false,
+        ventiladorOn: false,
+        velocidadeVentilador: 1,
+        cortinasAbertas: false,
     });
 
-    const [estadoLuz, setEstadoLuz] = useState<EstadoLuz>({
-        luzOn: false
-    });
-
-    //conectar ao backend e receber o estado inicial
     useEffect(() => {
-        socket.on('estadoInicialQuarto', (estadoInicial: EstadoInicial) => {
-            setEstadoInicial(estadoInicial);
+        socket.on('estadoInicial', (estado) => {
+            setEstadoInicial(estado);
         });
-        //atualiza estado quando houver mudança
-        socket.on('acenderLuzQuarto', (novoEstado: EstadoLuz) => {
-            setEstadoLuz(novoEstado);
+
+        socket.on('estadoAtual', (novoEstado) => {
+            setEstadoInicial(novoEstado);
         });
 
         return () => {
-            socket.off('estadoInicialQuarto');
-            socket.off('acenderLuzQuarto');
-        }
+            socket.off('estadoInicial');
+            socket.off('estadoAtual');
+        };
     }, []);
 
-    //funcao para alterar o estado dos dispositivos
-    const acenderLuz = () => {
-        socket.emit('acenderLuzQuarto');
-    }
+    const ligarLuzQuarto = () => {
+        estadoInicial.luzQuarto ? socket.emit('apagarLuzQuarto') : socket.emit('acenderLuzQuarto');
+    };
 
+    const controlarVentilador = () => {
+        estadoInicial.ventiladorOn ? socket.emit('desligarVentilador') : socket.emit('ligarVentilador');
+    };
+
+    const ajustarVelocidadeVentilador = (novaVelocidade: number) => {
+        socket.emit('ajustarVelocidadeVentilador', novaVelocidade);
+    };
+
+    const controlarCortinas = () => {
+        estadoInicial.cortinasAbertas ? socket.emit('fecharCortinas') : socket.emit('abrirCortinas');
+    };
 
     return (
         <div className='quarto'>
-            <div className='luz'>
-                <p>Quarto - Luz</p>
-                <button onClick={acenderLuz}>
-                    {estadoLuz.luzOn ? 'Desligar Luz' : 'Ligar Luz'}
+            <h2>Quarto</h2>
+            <Luz estado={estadoInicial.luzQuarto} onToggle={ligarLuzQuarto} />
+
+            <div className='ventilador'>
+                <p>Ventilador Inteligente</p>
+                <button onClick={controlarVentilador}>
+                    {estadoInicial.ventiladorOn ? 'Desligar Ventilador' : 'Ligar Ventilador'}
                 </button>
-                <img src='luz.png' className={`status ${estadoLuz.luzOn ? 'on' : 'off'}`} />
+                {estadoInicial.ventiladorOn && (
+                    <div>
+                        <label>Velocidade:</label>
+                        <input
+                            type="number"
+                            min="1"
+                            max="3"
+                            value={estadoInicial.velocidadeVentilador}
+                            onChange={(e) => ajustarVelocidadeVentilador(Number(e.target.value))}
+                        />
+                    </div>
+                )}
+            </div>
+
+            <div className='cortinas'>
+                <p>Cortinas Automáticas</p>
+                <button onClick={controlarCortinas}>
+                    {estadoInicial.cortinasAbertas ? 'Fechar Cortinas' : 'Abrir Cortinas'}
+                </button>
             </div>
         </div>
-    )
+    );
 }
