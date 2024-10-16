@@ -50,6 +50,7 @@ export default function Sala() {
 
     return (
         <div className='sala'>
+            <h2>Sala de Estar</h2>
             <Luz estado={estadoInicial.luzSala} onToggle={ligarLuzSala} />
             <Tv
                 estadoTv={estadoInicial.tvOn}

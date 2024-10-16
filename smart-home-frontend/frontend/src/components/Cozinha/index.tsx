@@ -40,6 +40,7 @@ export default function Cozinha() {
 
     return (
         <div className='cozinha'>
+            <h2>Cozinha</h2>
             <Luz estado={estadoInicial.luzCozinha} onToggle={ligarLuzCozinha} />
             <div className='geladeira'>
                 <p>Geladeira - Temperatura: {estadoInicial.temperaturaGeladeira}°C</p>

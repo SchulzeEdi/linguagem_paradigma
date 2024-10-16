@@ -8,7 +8,7 @@ interface LuzProps {
 const Luz: React.FC<LuzProps> = ({ estado, onToggle }) => {
     return (
         <div className='luz'>
-            <p>Cozinha - Luzes Inteligentes</p>
+            <p>Quarto - Luzes Inteligentes</p>
             <button onClick={onToggle}>
                 {estado ? 'Desligar Luz' : 'Ligar Luz'}
             </button>

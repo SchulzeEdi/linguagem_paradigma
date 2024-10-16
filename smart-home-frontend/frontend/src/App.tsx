@@ -9,11 +9,11 @@ const App: React.FC = () => {
   
   return (
     <body>
-      <div className='casa'>
-        <h1>Casa Inteligente</h1>
-        <Sala/>
-        <Cozinha/>
-        <Quarto/>
+      <h1>Casa Inteligente</h1>
+      <div className="container">
+        <div className="block"><Cozinha/></div>
+        <div className="block"><Sala/></div>
+        <div className="block"><Quarto/></div>
       </div>
       <footer>
         <p>Ederson Schulze e Ramon Valentim</p>
