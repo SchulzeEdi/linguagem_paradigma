@@ -15,6 +15,9 @@ const App: React.FC = () => {
         <Cozinha/>
         <Quarto/>
       </div>
+      <footer>
+        <p>Ederson Schulze e Ramon Valentim</p>
+      </footer>
     </body>
   );
 }

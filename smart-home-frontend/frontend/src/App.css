@@ -4,6 +4,18 @@
 body {
   background-color: linear-gradient(180deg, #424242, #00090E);
 }
+footer{
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    background-color: #f1f1f1;
+    text-align: center;
+    padding: 10px;
+    font-size: 14px;
+    color: #333;
+    border-top: 1px solid #ccc;
+}
 .status.on {
   display: block;
 }
